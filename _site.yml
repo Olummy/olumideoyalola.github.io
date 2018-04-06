@@ -1,0 +1,9 @@
+name: "olumideoyalola-website"
+output_dir: "."
+navbar:
+  title: "Olumide Michael Oyalola Website"
+  left:
+    - text: "Home"
+      href: index.html
+    - text: "About Me"
+      href: about.html
