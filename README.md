@@ -1,2 +1,2 @@
-# olumideoyalola.github.io
+# olummy.github.io
 My very own website!
