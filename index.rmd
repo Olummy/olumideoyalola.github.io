@@ -1,5 +1,6 @@
 ---
-title: "Olumide Micheal Oyalola Website"
+#title: "Olumide Michael Oyalola"
+output: html_document
 ---
 
 Hello, World!

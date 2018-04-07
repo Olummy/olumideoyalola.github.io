@@ -1,9 +1,29 @@
-name: "olumideoyalola-website"
+name: "my-website"
 output_dir: "."
+#include:["header.html"]
+exclude: ["docs.txt", "*.csv"]
 navbar:
-  title: "Olumide Michael Oyalola Website"
-  left:
+  title: "Olumide Michael Oyalola"
+  type: inverse
+  right:
     - text: "Home"
+      icon: fa-home
       href: index.html
+    - text: "Blog"
+      icon: fa-book
+      href: blog.html
     - text: "About Me"
+      icon: fa-info
       href: about.html
+ # right:
+    - icon: fa-question fa-lg
+      href: https://example.com
+  output:
+  html_document:
+    #theme: Lumen
+   # css: style.css
+    theme: solar
+    highlight: tango
+    include:
+      after_body: footer.html
+    css: styles.css
