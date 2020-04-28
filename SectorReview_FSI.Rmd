@@ -1,0 +1,230 @@
+---
+title: "Sector Analysis: Financial Services & Insurance"
+subtitle: "FSI"
+author: "Olumide Oyalola"
+output: 
+  flexdashboard::flex_dashboard:
+    storyboard: true
+    logo: image/longbridge-logo2.png
+    favicon: image/favicon-32x32.png
+    theme: lumen
+    social: menu
+    source: embed
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(knitr)
+library(ggplot2)
+library(tidyverse)
+library(readxl)
+library(dplyr)
+library(xts)
+library(zoo)
+library(lubridate)
+library(plotly)
+library(dygraphs)
+
+```
+
+
+### Overview of the Report {data-commentary-width=400}
+
+
+![](image/Business-Report-2.jpeg)
+
+
+***
+
+Introduction
+
+This report is tailored towards helping the team to make informed decisions especially about the FSI sector based on the dataset available. Primarily, the dataset for the exploratory analysis was sourced from the NBS (The National Bureau of Statistics). This sector was intentionally chosen because over 90% of the bookings for Q1 came from this sector. Moreover, over the years, Longbridge Technologies has majorly played within the FSI sector of the economy.
+
+Some of the questions to be answered from the analysis are:
+
+1. What is the trend of staffing in the sector.
+
+2. What is the pattern of nonperforming loans overtime?
+
+3. What is the trend of pattern systems in the Nigerian Banking Sector?
+
+
+
+
+```{r read-data1, message=FALSE, warning=FALSE}
+sheets <- excel_sheets("Data/Selected Banking Data 2019 Q4.xlsx")
+
+
+loans_tbl <- read_excel("Data/Selected Banking Data 2019 Q4.xlsx", sheet = "Non Performing Loans", skip = 3, range ="A4:G56" )
+
+loans_tbl <- as.data.frame(str_split_fixed(loans_tbl$Period, " ", 3)) %>% 
+  bind_cols(loans_tbl) %>% 
+  select(-Period) %>% 
+  mutate(Date = if_else(V1 == "1ST", "Q1",
+                        if_else(V1 == "2ND", "Q2",
+                                if_else(V1 == "3RD", "Q3", "Q4"))),
+         V3 = as.character(V3),
+         V3 = substring(V3, 3, 4),
+         Date = paste0(Date,"/", V3),
+         Date = zoo::as.Date(zoo::as.yearqtr(Date, format = "Q%q/%y")))
+```
+
+
+```{r data-wrangling2}
+
+staff_tbl <- read_excel("Data/Selected Banking Data 2019 Q4.xlsx", sheet = "Staff Strenght", skip = 1, range ="A2:O6" )
+
+staff_tbl <- staff_tbl %>% 
+  select(-`...2`, -`...3` )
+
+names(staff_tbl)[1] <- c("Category")
+
+staff_tbl <- staff_tbl %>% 
+  gather(key = "Period", value = "Staff_Strength", -Category) %>% 
+  mutate(Period = zoo::as.Date(zoo::as.yearqtr(Period, format = "Q%q %Y")))
+
+```
+
+
+
+### Overview of the nonperforming loans
+
+
+
+```{r Overview, fig.width=12, fig.height=7}
+ plot_ly(loans_tbl, x = ~Date ) %>% 
+  add_lines(y = ~`Nonperforming loans`) %>% 
+  layout(title = "Overview of banks nonperforming loans")
+  
+```
+
+
+### What's the trend of the banks nonperforming loans {data-commentary-width=400}
+
+```{r trend, fig.width=12, fig.height=7}
+library(ggforce)
+ 
+ ggplot(loans_tbl) + 
+   geom_line(aes(x = Date, y = `Nonperforming loans`, color = "red"), show.legend = FALSE, size =2) +
+   geom_smooth(aes(x = Date, y = `Nonperforming loans`), method = "lm")+
+   scale_y_continuous(labels = scales::comma) +
+   scale_x_date(date_breaks = "6 month", date_labels = "%b %y") +
+   theme_minimal() +
+   theme(axis.text.x=element_text(angle=60, hjust=1)) +
+   geom_mark_hull(aes(x = Date, y = `Nonperforming loans`, filter = Date == "2010-04-01", label = Date)) +
+   labs(caption = "Source: NBS (http://nigerianstat.gov.ng/)",
+        title = "Trend of banks nonperforming loans")
+  
+```
+
+
+***
+
+There's a growing trend in the banks' nonperforming loans. The peak was recorded in the Q1 of 2010 after the 2008-2009 global recession. The curve later dropped sharply later in 2010. However, growth was further observed in 2015.
+
+Looking at the novel COVID-19 pandemic and its effect on the economy globally, is the banking sector likely to experience another peak value for nonperforming loans? How will this affect Longbridge? What can we do this minimize the impact of this as the banks' nonperforming loans would have an adverse effect on their revenue and their ability to spend.
+
+
+
+### Quarterly trend of staffing in the Banking sector
+
+```{r ggplot2, fig.width=12, fig.height=7}
+library(ggforce)
+
+staff_tbl <- staff_tbl %>% 
+  mutate(Category = factor(Category, levels = c("Contract Staff", "Junior Staff",
+                                                "Senior Staff", "Executive Staff")))
+
+plot_ly(staff_tbl, x = ~Period, y = ~Staff_Strength, color = ~Category) %>% 
+  add_lines() %>% 
+  layout(title = "Quarterly trend of Staffing in the Banking Sector")
+
+
+```
+
+
+***
+Whereas there's an increase in the contract staff, there's a decline in both junior and senior staff. The Executive staff remains relatively the same for the time period examined.
+
+Could the increase in the contract staff be the reason why outsourcing has contributed over 80% to the Longbridge bookings as of date? The answer is probably yes! However, this (the increase in contract staff) is not as sustainable as the labour law could change the dynamics of things.
+
+
+### Overview of the transaction volume in 2019 via POS, Mobile and Web {data-commentary-width=400}
+
+```{r fig.width=10, fig.height=7}
+
+payment_systems <- read_excel("Data/Selected Banking Data 2019 Q4.xlsx", sheet = "payment systems", range ="A26:G38" )
+
+names(payment_systems) <- c("Month", "POS_Volume", "POS_Value", "Web_Volume", "Web_Value", "Mobile_Volume", "Mobile_Value") 
+  
+payment_systems <- payment_systems %>% 
+  mutate(Month = factor(Month, levels = c("January", "February", "March", "April",
+                                          "May", "June", "July", "August", "September", "October", "November", "December")),
+         Date = c("2019-01-30", "2019-02-27", "2019-03-30", "2019-04-29",
+                  "2019-05-30", "2019-06-29", "2019-07-30", "2019-08-30",
+                  "2019-09-29", "2019-10-30", "2019-11-29", "2019-12-30"),
+         Date = lubridate::ymd(Date))
+
+payment_gathered <- payment_systems %>% 
+  select(Month, POS_Volume, Web_Volume, Mobile_Volume) %>% 
+  rename(POS = POS_Volume, Web = Web_Volume, Mobile = Mobile_Volume) %>% 
+  gather(key = "Method", value = "Volume", -Month)
+ 
+payment_gathered %>% 
+  group_by(Method) %>% 
+  summarise(totalVolume = sum(Volume, na.rm = TRUE)) %>% 
+  mutate(Proportion = (totalVolume/sum(totalVolume, na.rm = TRUE))*100) %>% 
+
+plot_ly(., labels = ~Method, values = ~Proportion) %>% 
+  add_pie() %>% 
+  layout(title = "Porportion of transaction volume via POS, Mobile and Web in 2019")
+```
+
+
+***
+As expected, the volume of transactions on POS and Mobile leads to that of the Web.
+
+
+
+### Trend of transaction volume in 2019
+
+```{r data-wrangling3, fig.width=10, fig.height=6}
+
+
+
+
+plot_ly(payment_gathered, x = ~Month, y = ~Volume, color = ~Method) %>% 
+  add_bars() %>% 
+  layout(title = "Monthly distribution of transaction volume via POS, Mobile and Web")
+
+
+```
+
+
+
+***
+The trend indicated that there's an increase in the volume of transactions via Mobile from Jan to Dec. The increase is even more pronounced in December. This implies that more transactions happened during the Q4 especially in December via Mobile.
+
+This however suggested that our support services on internet banking and other banking products need to be top-notch all round the years especially during the December break.
+
+
+
+
+
+<!-- ### Conclusion -->
+
+<!-- Based on the visual representations, the following conclusions can be drawn -->
+
+<!-- 1. More distances are covered on the following days of the week: Saturday, Friday and Thursdays. -->
+
+<!-- 2. Monday has the least amount of activity. -->
+
+<!-- 3. Activities peaked during the mid-week and declines over the weekend. There's a sharp decline in activity from Saturday to Monday with a recovery on Tuesday. -->
+
+<!-- 4. The amount of sleep is on the increase especially from March 2020 till date. -->
+
+<!-- 5. Sedentary lifestyle correlate negatively with the amount of calories burnt. This implies that sedentary lifestyle has to be in check to burn more calories. -->
+
+<!-- 6. Calories burnt correlate positively with the number of steps taken. The relationship is strongly positive and very significant. -->

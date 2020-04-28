@@ -11,7 +11,7 @@ navbar:
       href: index.html
     - text: "Blog"
       icon: fa-book
-      href: blog.html
+      href: SectorReview_FSI.html
     - text: "About Me"
       icon: fa-info
       href: about.html
