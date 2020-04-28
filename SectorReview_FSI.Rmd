@@ -96,7 +96,7 @@ staff_tbl <- staff_tbl %>%
 ```{r Overview, fig.width=12, fig.height=7}
  plot_ly(loans_tbl, x = ~Date ) %>% 
   add_lines(y = ~`Nonperforming loans`) %>% 
-  layout(title = "Overview of banks nonperforming loans")
+  layout(title = "Overview of banks nonperforming loans", dragmode = "pan")
   
 ```
 
@@ -139,7 +139,7 @@ staff_tbl <- staff_tbl %>%
 
 plot_ly(staff_tbl, x = ~Period, y = ~Staff_Strength, color = ~Category) %>% 
   add_lines() %>% 
-  layout(title = "Quarterly trend of Staffing in the Banking Sector")
+  layout(title = "Quarterly trend of Staffing in the Banking Sector", dragmode = "pan")
 
 
 ```
