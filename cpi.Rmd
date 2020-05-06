@@ -1,0 +1,106 @@
+---
+title: "Composite Consumer Price Index"
+author: ""
+date: ""
+output: 
+  html_document: 
+    fig_caption: yes
+    toc: yes
+    number_sections: false
+    toc_depth: 4
+    fig.retina: 4
+    fig.caption: true
+    fig.width: 12
+    fig.height: 7
+    code_folding: show
+    df_print: paged
+    toc_float: 
+      collapsed:  true
+      smooth_scroll: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+
+
+```{r}
+### Libraries
+library(tidyverse)
+library(readxl)
+library(plotly)
+library(zoo)
+options(scipen = 999)
+```
+
+
+### Thought
+
+Did you know that the composite CPI for all items as of March 31st, 2020 was 315.23 with a Month-on-Month change of 0.84? 
+
+Moreover, the Month-on-Month change has been positive in 2020 which depicts a growing trend in the composite CPI.
+
+CPI is one of the strongest measures of inflation and this is evident as the price of a few consumer goods have changed.
+
+
+
+
+```{r}
+### Read data
+cpi_tbl <- read_excel("Data/cpi_1NewMAR2020.xlsx", sheet = "Table1", skip = 2, range = "A4:E308")
+
+cpi_tbl <- cpi_tbl[-1,]
+
+cpi_tbl <- cpi_tbl %>% 
+  mutate(Mon = case_when(Month == "January" ~ 1,
+                         Month == "February" ~ 2,
+                         Month == "March" ~ 3,
+                         Month == "April" ~ 4,
+                         Month == "May" ~ 5,
+                         Month == "June" ~ 6,
+                         Month == "July" ~ 7,
+                         Month == "August" ~ 8,
+                         Month == "September" ~ 9,
+                         Month == "October" ~ 10,
+                         Month == "November" ~ 11,
+                         Month == "December" ~ 12),
+         Date = paste0(Year, "-", Mon),
+         Date = as.Date(as.yearmon(Date)))
+```
+
+
+### Monthly composite consumer price index
+
+```{r}
+monthly <- ggplot(data = cpi_tbl, mapping = aes(x = Date, y = Monthly)) +
+  geom_line() +
+  #geom_smooth(method = "loess") +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y")+
+  theme_minimal() +
+   theme(axis.text.x=element_text(angle=60, hjust=1)) +
+  labs(caption = "Source: National Bureau of Statistics",
+       y = "Monthly CPI")
+
+ggplotly(monthly) %>% 
+  layout(title = "Monthly composite consumer price index", dragmode = "pan",
+         subtitle = "Base November")
+```
+
+### MoM change in consumer price index
+
+```{r}
+mom <- ggplot(data = cpi_tbl, mapping = aes(x = Date, y = `Month-on change (%)`)) +
+  geom_line() +
+  #geom_smooth(method = "lm") +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y")+
+  theme_minimal() +
+   theme(axis.text.x=element_text(angle=60, hjust=1)) +
+  labs(caption = "Source: National Bureau of Statistics",
+       y = "MoM change in CPI")
+
+ggplotly(mom) %>% 
+  layout(title = "Month-on-Month change in composite consumer price index", dragmode = "pan",
+         subtitle = "Base November")
+```
+

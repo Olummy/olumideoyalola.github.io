@@ -9,9 +9,12 @@ navbar:
     - text: "Home"
       icon: fa-home
       href: index.html
-    - text: "Blog"
+    - text: "Blog1"
       icon: fa-book
       href: SectorReview_FSI.html
+    - text: "Blog2"
+      icon: fa-book
+      href: cpi.html
     - text: "About Me"
       icon: fa-info
       href: about.html
